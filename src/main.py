@@ -197,6 +197,34 @@ class SpeedOverlay:
         self.ax.set_xlim(0, self.history_len)
         max_speed = max(max(self.down_history), max(self.up_history), 10)
         self.ax.set_ylim(0, max_speed * 1.2)
+        # Max/Min/Avg Download berechnen
+        max_down = max(self.down_history)
+        min_down = min(self.down_history)
+        avg_down = sum(self.down_history) / len(self.down_history) if self.down_history else 0
+        # Vorherigen Text entfernen, falls vorhanden
+        if hasattr(self, "chart_text"):
+            self.chart_text.remove()
+        # Vorherige Legende entfernen, falls vorhanden
+        if hasattr(self, "chart_legend"):
+            self.chart_legend.remove()
+        # Text oben links einfügen
+        self.chart_text = self.ax.text(
+            0.01, 0.98,
+            f"Max ↓: {max_down:.2f} Mbps\n"
+            f"Min ↓: {min_down:.2f} Mbps\n"
+            f"Ø ↓: {avg_down:.2f} Mbps",
+            color="white", fontsize=8, va="top", ha="left", transform=self.ax.transAxes,
+            bbox=dict(facecolor="black", alpha=0.5, edgecolor="none", pad=2)
+        )
+        # Legende direkt darunter einfügen
+        self.chart_legend = self.ax.legend(
+            loc="upper left",
+            bbox_to_anchor=(0.0, 0.32),  # etwas unterhalb von 1.0 (oben)
+            fontsize=6,
+            facecolor="black",
+            labelcolor="white",
+            framealpha=0.5
+        )
         self.canvas.draw_idle()
         self.grip.lift()
         self.toggle_btn.lift()
