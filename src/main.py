@@ -105,6 +105,9 @@ class SpeedOverlay:
         self.start_height_limit = self.root.winfo_height()
         self.show_chart = True
 
+        self.total_down = 0  # in Bytes
+        self.total_up = 0    # in Bytes
+
     def start_move(self, event):
         self.offset_x = event.x
         self.offset_y = event.y
@@ -134,7 +137,20 @@ class SpeedOverlay:
             new = psutil.net_io_counters()
             down = (new.bytes_recv - old.bytes_recv) * 8 / 1_000_000
             up = (new.bytes_sent - old.bytes_sent) * 8 / 1_000_000
-            self.label.config(text=f"↓ {down:.2f} Mbps  ↑ {up:.2f} Mbps")
+            self.total_down += new.bytes_recv - old.bytes_recv
+            self.total_up += new.bytes_sent - old.bytes_sent
+
+            # Formatierung für MB/GB
+            def fmt(size):
+                if size > 1024**3:
+                    return f"{size/1024**3:.2f} GB"
+                else:
+                    return f"{size/1024**2:.2f} MB"
+
+            self.label.config(
+                text=f"↓ {down:.2f} Mbps  ↑ {up:.2f} Mbps   "
+                     f"↓Σ {fmt(self.total_down)}  ↑Σ {fmt(self.total_up)}"
+            )
             old = new
             self.down_history.append(down)
             self.up_history.append(up)
