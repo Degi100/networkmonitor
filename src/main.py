@@ -7,6 +7,8 @@ matplotlib.use("Agg")
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from collections import deque
+import json
+import os
 
 class SpeedOverlay:
     def __init__(self):
@@ -16,7 +18,7 @@ class SpeedOverlay:
         self.root.overrideredirect(True)
         self.root.attributes("-alpha", 0.9)
         self.root.configure(bg="black")
-        self.root.minsize(350, 140)
+        self.root.minsize(850, 140)
         self.root.geometry(f"350x140+{self.root.winfo_screenwidth()-380}+{self.root.winfo_screenheight()-180}")
 
         # Label oben
@@ -107,6 +109,31 @@ class SpeedOverlay:
 
         self.total_down = 0  # in Bytes
         self.total_up = 0    # in Bytes
+        self.session_down = 0  # in Bytes
+        self.session_up = 0    # in Bytes
+        self.data_file = "traffic_stats.json"
+        if os.path.exists(self.data_file):
+            try:
+                with open(self.data_file, "r") as f:
+                    stats = json.load(f)
+                    self.total_down = stats.get("total_down", 0)
+                    self.total_up = stats.get("total_up", 0)
+            except Exception:
+                self.total_down = 0
+                self.total_up = 0
+
+        # Session Label
+        self.session_label = tk.Label(
+            self.root,
+            text="Session: ↓ 0.00 MB  ↑ 0.00 MB",
+            fg="white",
+            bg="black",
+            font=("Consolas", 10),
+            anchor="e",
+            width=32,
+            justify="center"
+        )
+        self.session_label.place(relx=0.5, rely=0.23, anchor="n")  # Rechts neben dem Chart, ggf. rely anpassen
 
     def start_move(self, event):
         self.offset_x = event.x
@@ -140,6 +167,10 @@ class SpeedOverlay:
             self.total_down += new.bytes_recv - old.bytes_recv
             self.total_up += new.bytes_sent - old.bytes_sent
 
+            # Session-Zähler erhöhen
+            self.session_down += new.bytes_recv - old.bytes_recv
+            self.session_up += new.bytes_sent - old.bytes_sent
+
             # Formatierung für MB/GB
             def fmt(size):
                 if size > 1024**3:
@@ -150,6 +181,10 @@ class SpeedOverlay:
             self.label.config(
                 text=f"↓ {down:.2f} Mbps  ↑ {up:.2f} Mbps   "
                      f"↓Σ {fmt(self.total_down)}  ↑Σ {fmt(self.total_up)}"
+            )
+            # Session-Label aktualisieren
+            self.session_label.config(
+                text=f"Session: ↓ {fmt(self.session_down)}  ↑ {fmt(self.session_up)}"
             )
             old = new
             self.down_history.append(down)
@@ -195,6 +230,15 @@ class SpeedOverlay:
 
     def close(self):
         self.running = False
+        # Werte speichern
+        try:
+            with open(self.data_file, "w") as f:
+                json.dump({
+                    "total_down": self.total_down,
+                    "total_up": self.total_up
+                }, f)
+        except Exception:
+            pass
         self.root.destroy()
 
     def run(self):
