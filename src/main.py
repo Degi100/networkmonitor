@@ -39,14 +39,23 @@ class SpeedOverlay:
         self.ax = self.fig.add_subplot(111)
         self.ax.set_facecolor("black")
         self.ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
-        self.down_line, = self.ax.plot([], [], color="lime", label="Download")
-        self.up_line, = self.ax.plot([], [], color="cyan", label="Upload")
+        self.down_line, = self.ax.plot([], [], color="lime", label="Download", linewidth=2)
+        self.up_line, = self.ax.plot([], [], color="cyan", label="Upload", linewidth=2)
         self.ax.set_ylim(0, 100)
+        self.ax.set_ylabel("Mbit/s", color="white", fontsize=8)
+        self.ax.yaxis.label.set_color('white')
+        self.ax.set_xlabel("Sekunden", color="white", fontsize=8)
+        self.ax.xaxis.label.set_color('white')
+        self.ax.set_xticks([0, self.history_len//2, self.history_len])
+        self.ax.set_xticklabels([str(self.history_len), str(self.history_len//2), "0"], color="white", fontsize=7)
+        self.ax.grid(True, color="#333333", linestyle="--", linewidth=0.5)
+        self.ax.legend(loc="upper left", fontsize=6, facecolor="black", labelcolor="white")
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.root)
         self.chart_widget = self.canvas.get_tk_widget()
         self.chart_widget.pack(fill="x", expand=False, side="top")
 
         # Toggle-Chart-Button ganz rechts außen (ganz links von den drei Buttons)
+        self.show_chart = True  # <-- Diese Zeile VOR dem Button!
         self.toggle_btn = tk.Button(
             self.root, text="▼", command=self.toggle_chart,
             bg="gray20", fg="white", bd=0, font=("Consolas",6), width=2, height=1
