@@ -46,13 +46,26 @@ class SpeedOverlay:
         self.chart_widget = self.canvas.get_tk_widget()
         self.chart_widget.pack(fill="x", expand=False, side="top")
 
-        # Toggle-Chart-Button oben rechts
-        self.show_chart = True
+        # Toggle-Chart-Button ganz rechts außen (ganz links von den drei Buttons)
         self.toggle_btn = tk.Button(
             self.root, text="▼", command=self.toggle_chart,
-            bg="gray20", fg="white", bd=0, font=("Consolas", 10), width=2, height=1
+            bg="gray20", fg="white", bd=0, font=("Consolas",6), width=2, height=1
         )
-        self.toggle_btn.place(relx=1.0, rely=0.0, anchor="ne")
+        self.toggle_btn.place(relx=0.88, rely=0.0, anchor="ne")
+
+        # Minimieren-/Hide-Button in der Mitte
+        self.min_btn = tk.Button(
+            self.root, text="–", command=self.minimize,
+            bg="gray20", fg="white", bd=0, font=("Consolas", 6), width=2, height=1
+        )
+        self.min_btn.place(relx=0.94, rely=0.0, anchor="ne")
+
+        # Schließen-Button ganz rechts
+        self.close_btn = tk.Button(
+            self.root, text="❌", command=self.close,
+            bg="gray20", fg="white", bd=0, font=("Consolas", 6), width=2, height=1
+        )
+        self.close_btn.place(relx=1.0, rely=0.0, anchor="ne")
 
         # Resize-Griff unten rechts
         self.grip = tk.Label(
@@ -63,7 +76,7 @@ class SpeedOverlay:
             cursor="bottom_right_corner",
             width=2,
             height=1,
-            font=("Consolas", 10)
+            font=("Consolas", 6)
         )
         self.grip.place(relx=1.0, rely=1.0, anchor="se")
         self.grip.bind("<Button-1>", self.start_resize)
@@ -81,6 +94,7 @@ class SpeedOverlay:
 
         self.start_width_limit = self.root.winfo_width()
         self.start_height_limit = self.root.winfo_height()
+        self.show_chart = True
 
     def start_move(self, event):
         self.offset_x = event.x
@@ -142,6 +156,17 @@ class SpeedOverlay:
             self.show_chart = True
             self.root.minsize(350, 140)
             self.root.geometry(f"{max(self.root.winfo_width(), 350)}x140")
+
+    def minimize(self):
+        self.root.overrideredirect(False)
+        self.root.iconify()
+        self.root.after(200, self.check_deiconify)
+
+    def check_deiconify(self):
+        if self.root.state() == "normal":
+            self.root.overrideredirect(True)
+        else:
+            self.root.after(200, self.check_deiconify)
 
     def close(self):
         self.running = False
