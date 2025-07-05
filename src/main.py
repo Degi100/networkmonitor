@@ -18,8 +18,8 @@ class SpeedOverlay:
         self.root.overrideredirect(True)
         self.root.attributes("-alpha", 0.9)
         self.root.configure(bg="black")
-        self.root.minsize(850, 140)
-        self.root.geometry(f"350x140+{self.root.winfo_screenwidth()-380}+{self.root.winfo_screenheight()-180}")
+        self.root.minsize(750, 140)
+        self.root.geometry(f"350x140+{self.root.winfo_screenwidth()-980}+{self.root.winfo_screenheight()-180}")
 
         # Label oben
         self.label = tk.Label(
